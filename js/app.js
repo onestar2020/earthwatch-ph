@@ -1,6 +1,5 @@
 // --- Telegram & OWM Keys ---
-const TELEGRAM_BOT_TOKEN = '7823356722:AAHjlLaea-8Dz1x_OYYiRZWscQp9MFp-Ogs';
-const TELEGRAM_CHAT_ID = '@EarthWatchAlertsPH';
+// ANG IYONG TELEGRAM TOKEN AT CHAT ID AY TINANGGAL DITO PARA SA SEGURIDAD.
 const OPENWEATHER_API_KEY = 'f59ff0b9ad2a8a41b031a90ba2107b20';
 // ------------------------------------------------
 
@@ -28,7 +27,7 @@ let tempLocationMarker = null;
 
 // --- State Management ---
 let notifiedEarthquakeIds = new Set();
-let notifiedTelegramAlerts = new Set();
+// let notifiedTelegramAlerts = new Set(); // Tinanggal dahil hindi na ginagamit
 let loggedHistoryAlerts = new Set();
 
 // --- 1. Initialization ---
@@ -296,7 +295,10 @@ function fetchWeather(lat, lon) {
                     const alertId = `storm-${Math.floor(data.dt / 3600)}`;
                     if (mainCondition === "Thunderstorm") { stormDetected = true; stormMessage = `⛈️ Storm Alert: Thunderstorm detected in your area (${name}).`; }
                     else if (windSpeed > 17) { stormDetected = true; stormMessage = `💨 Storm Alert: Strong winds (${windSpeed.toFixed(1)} m/s) detected in your area (${name}). Possible storm conditions.`; }
-                    if (stormDetected) { sendBrowserNotification('Potential Storm Condition!', stormMessage, alertId); sendTelegramAlert(stormMessage, alertId); }
+                    if (stormDetected) { 
+                        sendBrowserNotification('Potential Storm Condition!', stormMessage, alertId); 
+                        // sendTelegramAlert(stormMessage, alertId); // TINANGGAL
+                    }
                 }
             } else { weatherFeed.innerHTML = `<h2>Local Weather</h2><p>Error: ${data.message}</p>`; }
         })
@@ -331,7 +333,8 @@ function fetchEarthquakes() {
                          const distance = getDistance(userLat, userLon, quakeLat, quakeLon);
                         if (distance !== null && distance <= settings.alertRadius) {
                             const message = `⚠️ Nearby Earthquake Alert: Magnitude ${magnitude} (${location}), ${distance.toFixed(0)} km away from you.`;
-                            sendBrowserNotification('Nearby Earthquake!', message, quakeId); sendTelegramAlert(message, quakeId);
+                            sendBrowserNotification('Nearby Earthquake!', message, quakeId); 
+                            // sendTelegramAlert(message, quakeId); // TINANGGAL
                         }
                     }
                 }
@@ -343,6 +346,6 @@ function fetchEarthquakes() {
 // --- 4. Utility Functions ---
 function logAutoAlertToHistory(type, sentVia, message, uniqueId) { if (loggedHistoryAlerts.has(uniqueId + '-' + sentVia)) { return; } const historyKey = 'earthWatchAlertHistory'; let history = localStorage.getItem(historyKey); history = history ? JSON.parse(history) : []; const logEntry = { timestamp: Date.now(), type: type, sentVia: sentVia, message: message.substring(0, 200) + (message.length > 200 ? '...' : '') }; history.push(logEntry); if (history.length > 100) { history = history.slice(history.length - 100); } localStorage.setItem(historyKey, JSON.stringify(history)); loggedHistoryAlerts.add(uniqueId + '-' + sentVia); console.log("Auto alert logged:", logEntry); }
 function sendBrowserNotification(title, body, notificationId) { if (notifiedEarthquakeIds.has(notificationId)) { return; } if (Notification.permission === 'granted') { const notification = new Notification(title, { body: body }); const alertType = title.includes('Quake') ? 'Auto Quake' : 'Auto Storm'; logAutoAlertToHistory(alertType, 'Browser', body, notificationId); notifiedEarthquakeIds.add(notificationId); } }
-function sendTelegramAlert(originalMessage, alertId) { if (notifiedTelegramAlerts.has(alertId)) { return; } const fullMessage = `🚨 EARTHWATCH PH (AUTO-ALERT) 🚨\n\n${originalMessage}`; const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`; const params = { chat_id: TELEGRAM_CHAT_ID, text: fullMessage }; fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(params) }).then(response => response.json()).then(data => { if (data.ok) { console.log('Telegram auto-alert sent!'); const alertType = originalMessage.includes('Quake') ? 'Auto Quake' : 'Auto Storm'; logAutoAlertToHistory(alertType, 'Telegram', originalMessage, alertId); notifiedTelegramAlerts.add(alertId); } else { console.error('Telegram auto-alert error:', data); } }).catch(error => { console.error('Fetch error (Telegram Send):', error); }); }
+// --- sendTelegramAlert FUNCTION AY TINANGGAL ---
 function getDistance(lat1, lon1, lat2, lon2) { if (typeof lat1 !== 'number' || typeof lon1 !== 'number' || typeof lat2 !== 'number' || typeof lon2 !== 'number') { return null; } const R = 6371; const dLat = deg2rad(lat2 - lat1); const dLon = deg2rad(lon2 - lon1); const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2); const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a)); const d = R * c; return d; }
 function deg2rad(deg) { return deg * (Math.PI / 180); }
