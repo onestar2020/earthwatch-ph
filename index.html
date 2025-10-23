@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EarthWatch PH: Real-Time Alerts</title>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+     crossorigin=""/>
+
+    <link rel="stylesheet" href="css/main.css">
+
+    <meta name="theme-color" content="#343a40"> <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/images/icons/icon-192x192.png"> <style>
+        /* Settings Panel Styles */
+        #settings-panel {
+            background: #ffffff; border: 1px solid #dee2e6; border-radius: 8px;
+            padding: 15px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+        }
+        #settings-panel h3 {
+            margin-top: 0; margin-bottom: 18px; font-size: 1.15em; color: #495057;
+            text-align: center; border-bottom: none; padding-bottom: 0;
+        }
+        #settings-panel .setting-item { /* Para sa Alert toggles */
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 12px; font-size: 0.9em; padding: 5px 0;
+        }
+         #settings-panel .setting-item span:first-child {
+             margin-right: 10px; color: #495057; flex-shrink: 0;
+         }
+
+         /* --- INAYOS ANG LOCATION CHOICE --- */
+        .location-choice {
+            display: flex;
+            justify-content: space-between; /* Space between "Location Source:" and the radio buttons */
+            align-items: center;
+            margin-bottom: 15px; /* More space below */
+            font-size: 0.9em;
+            padding: 5px 0;
+            flex-wrap: wrap; /* Allow wrapping if needed */
+        }
+         .location-choice > label { /* Yung "Location Source:" */
+             margin-right: auto; /* Push radio buttons to the right */
+             color: #495057; flex-shrink: 0; margin-bottom: 5px; /* Add margin-bottom for wrap */
+         }
+         .location-choice div { /* Container ng radio buttons */
+            display: flex; align-items: center; flex-wrap: nowrap; /* Prevent radio buttons themselves from wrapping */
+            margin-left: 10px; /* Add some space if it wraps */
+         }
+        .location-choice input[type="radio"] { margin-right: 3px; }
+        .location-choice label:not(:first-child) { /* Labels ng "Auto" at "Manual" */
+            margin-right: 8px; /* Less Space between radio options */
+             white-space: nowrap; /* Prevent label text from wrapping */
+             cursor: pointer; /* Make label clickable */
+        }
+         /* --- END NG AYOS SA LOCATION CHOICE --- */
+
+
+        /* Manual Location Input */
+        .manual-location-area { margin-top: 15px; border-top: 1px solid #eee; padding-top: 15px;}
+        #manual-location-input {
+            width: calc(100% - 22px); padding: 8px 10px; margin-bottom: 8px; border: 1px solid #ced4da;
+            border-radius: 4px; font-size: 0.9em;
+        }
+        #set-manual-location-btn {
+            width: 100%; padding: 9px; font-size: 0.9em; background-color: #28a745;
+            color: white; border: none; border-radius: 4px; cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+        #set-manual-location-btn:hover { background-color: #218838; }
+        #manual-location-status { font-size: 0.8em; color: #6c757d; text-align: center; display: block; margin-top: 5px; min-height: 1.2em;}
+
+        /* Buttons in Settings Panel */
+        #follow-me-btn, #center-map-btn {
+            width: 100%; padding: 10px; color: white; border: none; border-radius: 5px;
+            cursor: pointer; font-weight: 500; margin-bottom: 12px; font-size: 0.95em;
+            transition: background-color 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+        #follow-me-btn { background-color: #007bff; }
+        #follow-me-btn:hover { background-color: #0069d9; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        #center-map-btn { background-color: #6c757d; }
+        #center-map-btn:hover { background-color: #5a6268; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        #center-map-btn:disabled { background-color: #ced4da; cursor: not-allowed; box-shadow: none;}
+
+        #location-status { /* Status for GPS */
+            text-align: center; display: block; margin-top: 5px; font-size: 0.85em;
+            color: #6c757d; min-height: 1.2em;
+        }
+
+        /* Switch Style */
+        .switch { position: relative; display: inline-block; width: 44px; height: 24px; flex-shrink: 0; }
+        .switch input { opacity: 0; width: 0; height: 0; }
+        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ced4da; transition: .4s; border-radius: 34px; }
+        .slider:before { position: absolute; content: ""; height: 16px; width: 16px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; box-shadow: 0 1px 2px rgba(0,0,0,0.2); }
+        input:checked + .slider { background-color: #007bff; }
+        input:checked + .slider:before { transform: translateX(20px); }
+
+        #settings-panel a { color: #007bff; text-decoration: none; font-size: 0.9em; }
+        #settings-panel a:hover { text-decoration: underline; }
+
+        /* Layer Control Style */
+        .leaflet-control-layers { border-radius: 5px; box-shadow: 0 1px 5px rgba(0,0,0,0.2); background: rgba(255, 255, 255, 0.9); padding: 5px; }
+        .leaflet-control-layers-toggle { width: 36px !important; height: 36px !important; background-size: 24px 24px !important; border-radius: 5px !important; }
+        .leaflet-control-layers label { font-size: 0.95em; margin-bottom: 3px; }
+        .leaflet-control-layers-separator { margin: 5px 0; }
+         .leaflet-control-layers-expanded { padding: 8px 10px; }
+
+         /* Map Click Popup Style */
+        .map-click-popup .leaflet-popup-content-wrapper { background: #f8f9fa; border-radius: 6px; }
+        .map-click-popup .leaflet-popup-content { font-size: 0.9em; text-align: center; padding: 10px !important; margin: 0 !important; }
+        .map-click-popup button { background-color: #28a745; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; margin-top: 8px; font-size: 0.9em; }
+         .map-click-popup button:hover { background-color: #218838; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>EarthWatch PH: Real-Time Alerts</h1>
+        <p>Track. Alert. Protect.</p>
+    </header>
+
+    <div class="container">
+        <div id="sidebar">
+             <div id="settings-panel">
+                <h3>Location & Alerts</h3>
+                <div class="location-choice">
+                    <label>Location Source:</label>
+                    <div>
+                        <input type="radio" id="useGps" name="locationSource" value="gps" checked>
+                        <label for="useGps">Auto (GPS)</label>
+                        <input type="radio" id="useManual" name="locationSource" value="manual" style="margin-left: 10px;">
+                        <label for="useManual">Manual</label>
+                    </div>
+                </div>
+                <div id="gps-controls">
+                    <button id="follow-me-btn">Follow My Location (GPS)</button>
+                    <small id="location-status"></small>
+                </div>
+                <div id="manual-location-controls" class="manual-location-area" style="display: none;">
+                    <label for="manual-location-input" style="font-size: 0.9em; margin-bottom: 5px; display: block;">Enter City or Click Map:</label>
+                    <input type="text" id="manual-location-input" placeholder="City, PH">
+                    <button id="set-manual-location-btn">Set Manual Location (from Input)</button>
+                    <small id="manual-location-status"></small>
+                </div>
+                 <button id="center-map-btn" disabled style="margin-top: 10px;">Center Map on Current Location</button>
+                <hr style="margin: 20px 0;">
+                 <h3>Alert Settings</h3>
+                 <div class="setting-item">
+                    <span>Alert: Nearby Quakes? (M5+)</span>
+                    <label class="switch">
+                        <input type="checkbox" id="setting-quake" data-setting="alertQuakes">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                <div class="setting-item">
+                    <span>Alert: Storm Conditions? (Wind/Thunder)</span>
+                    <label class="switch">
+                        <input type="checkbox" id="setting-storm" data-setting="alertStorm">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                 <p style="text-align:center; margin-top: 20px; border-top: 1px solid #eee; padding-top: 15px;">
+                     <a href="history.html">View Alert History</a>
+                 </p>
+            </div>
+            <div id="weather-feed">
+                <h2>Local Weather</h2>
+                <p>Set location (GPS or Manual) to load weather.</p>
+            </div>
+            <hr>
+            <div id="earthquake-feed">
+                <h2>Latest Earthquakes</h2>
+                <ul>
+                    <li>Loading...</li>
+                </ul>
+            </div>
+        </div>
+
+        <div id="map"></div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+     crossorigin=""></script>
+
+    <script src="js/settings.js"></script>
+    <script src="js/app.js?v=19"></script>
+
+    <script>
+      // Register Service Worker
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+          navigator.serviceWorker.register('/js/sw.js') // Correct path assuming sw.js is inside js folder
+            .then(registration => {
+              console.log('Service Worker registered successfully:', registration.scope);
+            })
+            .catch(error => {
+              console.log('Service Worker registration failed:', error);
+            });
+        });
+      }
+    </script>
+    </body>
+</html>

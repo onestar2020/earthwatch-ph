@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alert History - EarthWatch PH</title>
+    <link rel="stylesheet" href="css/main.css">
+    <style>
+        /* Inherit body styles from main.css */
+
+        .history-container {
+            max-width: 950px; /* Slightly wider */
+            margin: 20px auto;
+            padding: 25px; /* Increased padding */
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.05); /* Softer shadow */
+        }
+        .history-container h1 {
+            text-align: center;
+            margin-top: 0;
+            margin-bottom: 25px; /* More space below H1 */
+            color: #343a40;
+            font-weight: 600;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid #dee2e6; /* Lighter borders */
+            padding: 12px 10px; /* Adjusted padding */
+            text-align: left;
+            font-size: 0.88em; /* Slightly smaller text */
+            vertical-align: top; /* Align text to top */
+        }
+        th {
+            background-color: #e9ecef; /* Lighter header */
+            font-weight: 600; /* Bolder header */
+            color: #495057;
+        }
+        tbody tr:nth-child(even) {
+            background-color: #f8f9fa; /* Alternate row color */
+        }
+        tbody tr:hover {
+            background-color: #f1f3f5; /* Hover effect */
+        }
+        .message-col {
+            max-width: 350px; /* Adjust width */
+            word-wrap: break-word;
+            line-height: 1.5;
+        }
+        .no-history {
+            text-align: center;
+            color: #6c757d; /* Gray color */
+            margin-top: 30px;
+            font-style: italic;
+        }
+        .button-container {
+            display: flex; /* Use Flexbox for button layout */
+            justify-content: center; /* Center buttons */
+            gap: 15px; /* Space between buttons */
+            margin-top: 30px;
+            flex-wrap: wrap; /* Allow wrapping on small screens */
+        }
+        /* Style for buttons (shared styles) */
+        #clear-history-btn, .nav-link {
+            padding: 10px 25px; /* More horizontal padding */
+            border: none;
+            border-radius: 5px; /* Slightly more rounded */
+            cursor: pointer;
+            font-weight: 500;
+            text-decoration: none; /* Remove underline from link */
+            display: inline-block; /* Needed for padding on link */
+             transition: background-color 0.2s ease;
+        }
+        /* Specific button styles */
+        #clear-history-btn {
+            background-color: #dc3545;
+            color: white;
+        }
+        #clear-history-btn:hover {
+            background-color: #c82333;
+        }
+        .nav-link {
+             background-color: #007bff;
+             color: white;
+        }
+        .nav-link:hover {
+             background-color: #0056b3;
+        }
+
+        /* --- MOBILE VIEW FOR BUTTONS --- */
+        @media (max-width: 600px) {
+            .button-container {
+                flex-direction: column; /* Stack buttons vertically */
+                align-items: center; /* Center buttons vertically */
+                gap: 10px; /* Adjust gap for vertical layout */
+            }
+             #clear-history-btn, .nav-link {
+                 width: 80%; /* Make buttons wider on mobile */
+                 text-align: center; /* Center text inside buttons */
+             }
+             th, td {
+                 font-size: 0.8em; /* Smaller font on mobile table */
+                 padding: 8px 5px;
+             }
+             .message-col { max-width: 200px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="history-container">
+        <h1>Alert History Log</h1>
+
+        <table id="history-table">
+            <thead>
+                <tr>
+                    <th>Date & Time Sent</th>
+                    <th>Type</th>
+                    <th>Sent Via</th>
+                    <th class="message-col">Message</th>
+                </tr>
+            </thead>
+            <tbody>
+                </tbody>
+        </table>
+
+        <p id="no-history-message" class="no-history" style="display: none;">No alert history found.</p>
+
+        <div class="button-container">
+            <button id="clear-history-btn">Clear History</button>
+            <a href="index.html" class="nav-link">&larr; Map Dashboard</a>
+        </div>
+    </div>
+
+    <script src="js/history.js"></script>
+</body>
+</html>
